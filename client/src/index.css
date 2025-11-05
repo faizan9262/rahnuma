@@ -1,0 +1,245 @@
+@import "tailwindcss";
+
+
+
+/* light green */
+/* @theme {
+  --color-background: #f6f5f3;
+  --color-foreground: #1f2923;
+  --color-primary: #2d9b67;
+  --color-primary-hover: #238154;
+  --color-secondary: #326951;
+  --color-accent: #45b875;
+  --color-muted: #e5e7eb;
+  --color-border: #d1d5db;
+  --color-card: #ffffff;
+  --color-card-dark: #22332a;
+} */
+
+/* light blue  */
+/* @theme {
+  --color-background: #f4f8fb;
+  --color-foreground: #0a1a2f;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-secondary: #1e3a8a;
+  --color-accent: #38bdf8;
+  --color-muted: #e2e8f0;
+  --color-border: #cbd5e1;
+  --color-card: #ffffff;
+  --color-card-dark: #1e293b;
+} */
+
+/* light orange */
+/* @theme {
+  --color-background: #faf6f1;
+  --color-foreground: #2a1d0c;
+  --color-primary: #d97706;
+  --color-primary-hover: #b45309;
+  --color-secondary: #92400e;
+  --color-accent: #f59e0b;
+  --color-muted: #fef3c7;
+  --color-border: #e2e8f0;
+  --color-card: #ffffff;
+  --color-card-dark: #78350f;
+} */
+
+/* light purple */
+/* @theme {
+  --color-background: #f9f7fb;
+  --color-foreground: #1a1127;
+  --color-primary: #7c3aed;
+  --color-primary-hover: #6d28d9;
+  --color-secondary: #4c1d95;
+  --color-accent: #a78bfa;
+  --color-muted: #ede9fe;
+  --color-border: #ddd6fe;
+  --color-card: #ffffff;
+  --color-card-dark: #2e1065;
+} */
+
+/* light gray */
+/* @theme {
+  --color-background: #f9fafb;
+  --color-foreground: #111827;
+  --color-primary: #4b5563;
+  --color-primary-hover: #374151;
+  --color-secondary: #1f2937;
+  --color-accent: #9ca3af;
+  --color-muted: #e5e7eb;
+  --color-border: #d1d5db;
+  --color-card: #ffffff;
+  --color-card-dark: #1f2937;
+} */
+
+/* light mint  */
+/* @theme {
+  --color-background: #f0fdfa;
+  --color-foreground: #042f2e;
+  --color-primary: #14b8a6;
+  --color-primary-hover: #0d9488;
+  --color-secondary: #115e59;
+  --color-accent: #2dd4bf;
+  --color-muted: #ccfbf1;
+  --color-border: #99f6e4;
+  --color-card: #ffffff;
+  --color-card-dark: #134e4a;
+} */
+
+/* light red  */
+/* @theme {
+  --color-background: #fff5f5;
+  --color-foreground: #2d0a0a;
+  --color-primary: #ef4444;
+  --color-primary-hover: #dc2626;
+  --color-secondary: #991b1b;
+  --color-accent: #f87171;
+  --color-muted: #fee2e2;
+  --color-border: #fecaca;
+  --color-card: #ffffff;
+  --color-card-dark: #7f1d1d;
+} */
+
+
+/* ocean dark  */
+/* @theme {
+  --color-background: #0f172a;
+  --color-foreground: #f1f5f9;
+  --color-primary: #0ea5e9;
+  --color-primary-hover: #0284c7;
+  --color-secondary: #1e293b;
+  --color-accent: #38bdf8;
+  --color-muted: #475569;
+  --color-border: #334155;
+  --color-card: #1e293b;
+  --color-card-dark: #0f172a;
+} */
+
+/* light pink  */
+/* @theme {
+  --color-background: #fff0f6;
+  --color-foreground: #3d0d1a;
+  --color-primary: #ec2099;
+  --color-primary-hover: #db2777;
+  --color-secondary: #9d174d;
+  --color-accent: #f472b6;
+  --color-muted: #fbcfe8;
+  --color-border: #f9a8d4;
+  --color-card: #ffffff;
+  --color-card-dark: #831843;
+} */
+
+
+/* blue/cyan */
+@theme {
+  --color-background: #0a0a0a;
+  --color-foreground: #f5f5f5;
+  --color-primary: #22d3ee;
+  --color-primary-hover: #06b6d4;
+  --color-secondary: #0f172a;
+  --color-accent: #a855f7;
+  --color-muted: #1e293b;
+  --color-border: #334155;
+  --color-card: #111827;
+  --color-card-dark: #0a0a0a;
+}
+
+/* @theme {
+  --color-background: #f9fafb;   
+  --color-foreground: #0a0a0a;   
+  --color-primary: #06b6d4;      
+  --color-primary-hover: #0891b2; 
+  --color-secondary: #e2e8f0;    
+  --color-accent: #9333ea;      
+  --color-muted: #f3f4f6;        
+  --color-border: #d1d5db;      
+  --color-card: #ffffff;         
+  --color-card-dark: #f3f4f6;  
+} */
+
+
+/* green  */
+
+/* @theme {
+  --color-background: #0a0a0a;
+  --color-foreground: #f5f5f5;
+  --color-primary: #34d399;
+  --color-primary-hover: #059669;
+  --color-secondary: #064e3b;
+  --color-accent: #22d3ee;
+  --color-muted: #1e293b;
+  --color-border: #334155;
+  --color-card: #111827;
+  --color-card-dark: #0a0a0a;
+} */
+
+
+/* purpule */
+/* @theme {
+  --color-background: #0b0b0f;
+  --color-foreground: #f3f4f6;
+  --color-primary: #8b5cf6; 
+  --color-primary-hover: #7c3aed;
+  --color-secondary: #312e81;
+  --color-accent: #22d3ee; 
+  --color-muted: #1e293b;
+  --color-border: #374151;
+  --color-card: #111827;
+  --color-card-dark: #0a0a0a;
+} */
+
+
+/* lime */
+/* @theme {
+  --color-background: #0a0a0a;
+  --color-foreground: #e5e7eb;
+  --color-primary: #84cc16; 
+  --color-primary-hover: #65a30d;
+  --color-secondary: #365314;
+  --color-accent: #22d3ee; 
+  --color-muted: #1a1a1a;
+  --color-border: #2e2e2e;
+  --color-card: #171717;
+  --color-card-dark: #0a0a0a;
+} */
+
+
+/* electic bule */
+/* @theme {
+  --color-background: #0a0a0a;
+  --color-foreground: #f8fafc;
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-secondary: #1e3a8a;
+  --color-accent: #f59e0b; 
+  --color-muted: #1e293b;
+  --color-border: #334155;
+  --color-card: #111827;
+  --color-card-dark: #0a0a0a;
+} */
+
+/* mageta  */
+/* @theme {
+  --color-background: #0a0a0a;
+  --color-foreground: #f3f4f6;
+  --color-primary: #ec4899;
+  --color-primary-hover: #db2777;
+  --color-secondary: #831843;
+  --color-accent: #22d3ee;
+  --color-muted: #1f2937;
+  --color-border: #374151;
+  --color-card: #111827;
+  --color-card-dark: #0a0a0a;
+} */
+
+
+
+
+body {
+  @apply bg-background text-foreground;
+}
+
+.highlight {
+  background-color: yellow;
+  transition: background-color 0.5s ease;
+}
