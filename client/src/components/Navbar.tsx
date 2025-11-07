@@ -73,17 +73,12 @@ export default function Navbar() {
 
           {user ? (
             <div className="flex items-center gap-4 ">
-              {user?.profile_picture ? (
                 <img
                   src={user?.profile_picture}
                   alt="Profile"
+                  referrerPolicy="no-referrer"
                   className="w-12 h-12 rounded-full object-cover border-2 border-primary"
                 />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-white border-2 border-primary">
-                  {user?.username?.[0] || "U"}
-                </div>
-              )}
 
               <ConfirmAlert
                 trigger={

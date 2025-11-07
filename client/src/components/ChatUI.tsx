@@ -114,7 +114,7 @@ const Chat = () => {
           >
             {msg.sender === "ai" && (
               <div className="hidden sm:flex w-8 h-8 items-center justify-center rounded-full bg-primary text-card-dark font-bold text-xs">
-                R
+                راہنما
               </div>
             )}
 
@@ -154,6 +154,7 @@ const Chat = () => {
               <img
                 src={user?.profile_picture}
                 alt="profile"
+                referrerPolicy="no-referrer"
                 className="hidden sm:flex w-8 h-8 rounded-full object-cover"
               />
             )}
@@ -167,7 +168,7 @@ const Chat = () => {
             className="flex items-end gap-2 justify-start"
           >
             <div className="hidden sm:flex w-8 h-8 items-center justify-center rounded-full bg-primary text-card-dark font-bold text-xs">
-              R
+              
             </div>
             <Card className="bg-card-dark text-primary border border-border px-4 py-3 rounded-2xl rounded-tl-none">
               <span className="animate-pulse">🪄 Thinking...</span>

@@ -3,17 +3,23 @@ import { useDocumentStore } from "@/stores/documentStore";
 import { getAllDocuments } from "@/libs/apis/documents";
 import Sidebar from "@/components/Sidebar";
 import ChatUi from "@/components/Main";
+import { useAuthStore } from "@/stores/authStore";
 
 
 export default function Home() {
   const { setDocuments } = useDocumentStore();
+  const {user} = useAuthStore()
+
+
+  console.log("User: ",user?.profile_picture);
+  
 
   // Fetch documents from API on mount
   useEffect(() => {
     const fetchDocs = async () => {
       try {
         const res = await getAllDocuments();
-        console.log("Fetched Docs: ",res);
+        // console.log("Fetched Docs: ",res);
         
         setDocuments(res);
       } catch (error) {

@@ -20,7 +20,7 @@ export default function LoginPage() {
     try {
       toast.loading("Loggin You In",{id:'login'})
       const res = await loginUser(email,password)
-      login(res.user)
+      login(res.user) 
       naviagte('/')
       toast.success('Login In Successful',{id:'login'})
     } catch (error) {

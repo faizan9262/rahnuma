@@ -1,114 +1,136 @@
+from app.worker import celery_app
+from app.db.session import SessionLocal
+from app.models.document import Document as DbDocument
+from app.models.user import User
 from sentence_transformers import SentenceTransformer
 import chromadb
-import numpy as np
-from langchain_community.llms import Ollama 
-from app.task import bm25_search
-import random
-from fastapi import HTTPException
-import json
+from rank_bm25 import BM25Okapi
+from langchain_ollama import OllamaLLM
 import re
+import numpy as np
+from fastapi.encoders import jsonable_encoder
 
-embedding_model = SentenceTransformer("all-MiniLM-L12-v2") 
+bm25_indexes = {}
+bm25_corpus = {}
+
+embedding_model = SentenceTransformer("all-MiniLM-L12-v2")
+
 chroma_client = chromadb.PersistentClient(path="chromadb_store")
-collection = chroma_client.get_collection("rehnuma_docs")
+collection = chroma_client.get_or_create_collection("rehnuma_docs")
 
-chat_llm = Ollama(model="llama3", temperature=0.7) 
+factual_llm = OllamaLLM(model="llama3", temperature=0.1)
 
-factual_llm = Ollama(model="llama3", temperature=0.1) 
 
-def cosine_sim(a, b):
-    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-8)
+def hybrid_search(query: str, doc_id: int, top_k: int = 5):
+    """Combine vector and BM25 scores for more accurate retrieval"""
+    if doc_id not in bm25_indexes:
+        return []
 
-def search_in_doc(query: str, doc_id: int, user_id: int, conversation: list = [], n_results: int = 5, alpha: float = 0.5):
-    
-    step_back_prompt = f"""
-    You are an expert at generating high-level questions.
-    The user asked a specific question: "{query}"
-    What is the more general, "step-back" question that this specific question is trying to answer?
-    
-    Example 1:
-    User: "What is the IELTS requirement for the University of Göttingen?"
-    Step-Back Question: "What are the admission requirements for the University of Göttingen?"
+    tokenized_query = query.split()
+    bm25_scores = bm25_indexes[doc_id].get_scores(tokenized_query)
 
-    Example 2:
-    User: "How many universities are listed in this document?"
-    Step-Back Question: "What is a summary of the universities included in this document?"
-    
-    Return only the step-back question, with no other text.
-    Step-Back Question:
-    """
-    
-    step_back_query = factual_llm.invoke(step_back_prompt).strip()
-    print(f"Original Query: {query}")
-    print(f"Step-Back Query: {step_back_query}")
-
-    query_embedding = embedding_model.encode(step_back_query).tolist()
+    query_embedding = embedding_model.encode(query).tolist()
     results = collection.query(
         query_embeddings=[query_embedding],
-        n_results=n_results,
-        where={
-            "$and": [
-                {"user_id": user_id},
-                {"doc_id": doc_id}
-            ]
-        }
+        n_results=min(top_k * 2, 10),
+        where={"doc_id": doc_id}
     )
-    
-    semantic_docs = results.get("documents", [[]])[0]
-    semantic_metas = results.get("metadatas", [[]])[0]
-    semantic_distances = results.get("distances", [[]])[0]
-    semantic_scores = [1 - d for d in semantic_distances] 
 
+    docs = results.get("documents", [[]])[0]
+    embeddings = results.get("embeddings", [[]])[0]
 
-    bm25_results = bm25_search(step_back_query, doc_id, top_k=n_results)
+    def cosine_sim(a, b):
+        return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-8)
 
     hybrid_results = []
-    for doc, meta, score in zip(semantic_docs, semantic_metas, semantic_scores):
-        hybrid_results.append((doc, meta, alpha * score))
+    for i, doc_text in enumerate(docs):
+        bm25_part = max(bm25_scores) * 0.4 if bm25_scores else 0.0
+        emb_part = cosine_sim(query_embedding, embeddings[i]) * 0.6
+        hybrid_results.append((doc_text, bm25_part + emb_part))
 
-    for doc, score, idx in bm25_results:
-        meta = {"doc_id": doc_id, "chunk_index": idx}
-        hybrid_results.append((doc, meta, (1 - alpha) * score))
+    ranked = sorted(hybrid_results, key=lambda x: x[1], reverse=True)
+    return [r[0] for r in ranked[:top_k]]
 
-    hybrid_results = sorted(hybrid_results, key=lambda x: x[2], reverse=True)[:n_results]
+@celery_app.task(bind=True, max_retries=3)
+def process_document_task(self, doc_id: int, user_id: int):
+    from app.services.document_service import load_and_split_document_with_vision
 
-    
-    context_text = "\n\n".join([doc for doc, _, _ in hybrid_results])
-    chat_context = "\n".join(f"{msg['role'].capitalize()}: {msg['content']}" for msg in conversation)
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        doc = db.query(DbDocument).filter(DbDocument.id == doc_id).first()
+        if not doc:
+            raise ValueError(f"Document {doc_id} not found")
 
-    prompt = f"""
-        You are an AI assistant. Answer the user's original, specific question.
-        Use the previous conversation for context and base your answer *only* on the provided document context.
-        The document context was retrieved using a general "step-back" question, so it contains broad information.
-        Your task is to find the specific detail that answers the user's original question from within that context.
+        chunks = load_and_split_document_with_vision(doc_id, db, current_user=user)
+        if not chunks:
+            raise ValueError(f"No chunks returned for document {doc_id}")
 
-        Conversation History:
-        {chat_context}
+        embeddings = embedding_model.encode(
+            [chunk.page_content for chunk in chunks],
+            batch_size=16,
+            convert_to_numpy=True
+        )
 
-        Document Context:
-        {context_text}
+        for i, chunk in enumerate(chunks):
+            collection.add(
+                ids=[f"{doc_id}_{i}"],
+                documents=[chunk.page_content],
+                embeddings=[embeddings[i].tolist()],
+                metadatas=[{
+                    "user_id": user_id,
+                    "doc_id": doc_id,
+                    "source": chunk.metadata.get("source", ""),
+                    "chunk_index": i
+                }]
+            )
 
-        User's Original Question:
-        {query}
+        print(f"✅ Indexed {len(chunks)} chunks for document {doc_id}. Total: {collection.count()} entries.")
 
-        Answer:
-    """
+        combined_text = "\n\n".join([c.page_content for c in chunks[:10]])  
+        concept_prompt = f"""
+        Identify the 5–10 key topics or sections discussed in this study material.
+        Return as a clean numbered list (no extra text).
+        Document:
+        {combined_text}
+        """
+        topics_raw = factual_llm.invoke(concept_prompt)
 
-    answer = chat_llm.invoke(prompt)
+        key_topics_list = []
+        for line in topics_raw.split("\n"):
+            line = line.strip()
+            if line and re.match(r"^\d+\.", line):
+                key_topics_list.append(re.sub(r"^\d+\.\s*", "", line))
 
-    formatted_results = [
-        {
-            "content": doc,
-            "doc_id": meta["doc_id"],
-            "source": meta.get("source", ""),
-            "score": float(score)
+        doc.key_topics_json = key_topics_list or []
+        doc.status = "ready"
+        db.commit()
+
+        tokenized_chunks = [chunk.page_content.split() for chunk in chunks]
+        bm25_indexes[doc_id] = BM25Okapi(tokenized_chunks)
+        bm25_corpus[doc_id] = [chunk.page_content for chunk in chunks]
+
+        print(f"📘 Document {doc_id} processed successfully and ready.")
+
+        test_query = "summary"
+        sample_results = hybrid_search(test_query, doc_id)
+        print(f"🔍 Sample hybrid retrieval for '{test_query}': {sample_results[:1]}")
+
+        return {
+            "doc_id": doc_id,
+            "user_id": user_id,
+            "status": "ready",
+            "topics": key_topics_list,
+            "chunks": [c.page_content for c in chunks],
         }
-        for doc, meta, score in hybrid_results
-    ]
 
-    return {
-        "query": query,
-        "doc_id": doc_id,
-        "answer": answer,
-        "source_chunks": formatted_results
-    }
+    except Exception as e:
+        try:
+            self.retry(exc=e, countdown=10)
+        except:
+            if doc := db.query(DbDocument).filter(DbDocument.id == doc_id).first():
+                doc.status = "failed"
+                db.commit()
+            print(f"❌ Document processing failed: {e}")
+    finally:
+        db.close()

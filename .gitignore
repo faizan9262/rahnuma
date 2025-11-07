@@ -86,3 +86,5 @@ pnpm-debug.log*
 .DS_Store
 Thumbs.db
 desktop.ini
+
+server/app/static/
